@@ -1,0 +1,2 @@
+Othello README
+Sarah Asano
