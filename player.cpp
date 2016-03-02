@@ -14,6 +14,13 @@ Player::Player(Side side) {
      * precalculating things, etc.) However, remember that you will only have
      * 30 seconds.
      */
+    this->myBoard = Board();
+    this->mySide = side;
+    if (side == BLACK)
+      { this->otherSide = WHITE; }
+    else 
+      { this->otherSide = BLACK; }
+    srand(time(NULL));
 }
 
 /*
@@ -35,11 +42,48 @@ Player::~Player() {
  * return NULL.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-  if (msLeft == -1)
-    { return NULL;}
-    /* 
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */ 
-    return NULL;
+  /* 
+   * TODO: Implement how moves your AI should play here. You should first
+   * process the opponent's opponents move before calculating your own move
+   */
+  int debug = 1;
+  // update own board with opponent's move
+  this->myBoard.doMove(opponentsMove, this->otherSide);
+  if (debug)
+    {
+      std::cerr << "  Called doMove. " << std::endl;
+      if (opponentsMove != NULL)
+	{
+	  std::cerr << "Opponent's move:" << opponentsMove->getX() << "," 
+		    << opponentsMove->getY() << " " << opponentsMove << std::endl;
+	}
+    }
+  // check whether there are valid moves
+  if (!this->myBoard.hasMoves(this->mySide))
+    {
+      if (debug)
+  	{ std::cerr << "Playing NULL" <<  std::endl; }
+      return NULL;
+    }
+  this->validMove = new Move(0, 0);
+  while(!this->myBoard.checkMove(this->validMove, this->mySide)) 
+    // loop to find valid move
+    {
+      this->validMove->setX(rand() % 8);
+      this->validMove->setY(rand() % 8);
+      if (debug)
+	{
+	  std::cerr << "  Testing move:" << this->validMove->getX() << "," 
+		    << this->validMove->getY() << std::endl;
+	}
+    }
+  // update own board
+  this->myBoard.doMove(this->validMove, this->mySide);
+  if (debug)
+    {
+      std::cerr << "Playing move:" << this->validMove->getX() << "," 
+		<< this->validMove->getY() << std::endl;
+    }
+ 
+  return this->validMove;
 }

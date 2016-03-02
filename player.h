@@ -4,18 +4,24 @@
 #include <iostream>
 #include "common.h"
 #include "board.h"
+#include <time.h>
+#include <stdlib.h>
 using namespace std;
 
 class Player {
-
-public:
-    Player(Side side);
-    ~Player();
+ private:
+  Board myBoard;
+  Move *validMove;
+  Side mySide;
+  Side otherSide;
+ public:
+  Player(Side side);
+  ~Player();
     
-    Move *doMove(Move *opponentsMove, int msLeft);
+  Move *doMove(Move *opponentsMove, int msLeft);
 
-    // Flag to tell if the player is running within the test_minimax context
-    bool testingMinimax;
+  // Flag to tell if the player is running within the test_minimax context
+  bool testingMinimax;
 };
 
 #endif
