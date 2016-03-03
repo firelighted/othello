@@ -6,6 +6,7 @@
 #include "board.h"
 #include <time.h>
 #include <stdlib.h>
+#include <vector>
 using namespace std;
 
 class Player {
@@ -14,6 +15,7 @@ class Player {
   Move *validMove;
   Side mySide;
   Side otherSide;
+  std::vector < std::vector <int> > weights;
  public:
   Player(Side side);
   ~Player();
