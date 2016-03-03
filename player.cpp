@@ -39,41 +39,10 @@ Player::Player(Side side) {
     this->weights.push_back(vec2);
     this->weights.push_back(vec1);
     this->weights.push_back(vec0);
-    // this->weights[1] = vec1;
-    // this->weights[2] = vec2;
-    // this->weights[3] = vec3;
-    // this->weights[4] = vec3;
-    // this->weights[5] = vec2;
-    // this->weights[6] = vec1;
-    // this->weights[7] = vec0;
     if (debug) { 
       for (int i = 0; i < 8; i++)
     	{ std::cerr << this->weights[i][i] << std::endl; }
     }
-    // this->weights.push_back(vec1);
-    // this->weights.push_back(vec2);
-    // this->weights.push_back(vec3);
-    // this->weights.push_back(vec4);
-    // this->weights.push_back(vec4);
-    // this->weights.push_back(vec3);
-    // this->weights.push_back(vec2);
-    // this->weights.push_back(vec1);
-    // this->weights =  { {100, -10, 11, 6, 6, 11, -10, 100}, 
-    // 		       {-10, -20, 1,  2, 2, 1,  -20, -10},
-    // 		       {10,    1, 5,  4, 4, 5,    1,  10},
-    // 		       {6,     2, 4,  2, 2, 4,    2,   6},
-    // 		       {6,     2, 4,  2, 2, 4,    2,   6},
-    // 		       {10,    1, 5,  4, 4, 5,    1,  10},
-    // 		       {-10, -20, 1,  2, 2, 1,  -20, -10},
-    // 		       {100, -10, 11, 6, 6, 11, -10, 100} };
-    // this->weights =  {  100, -10, 11, 6, 6, 11, -10, 100 , 
-    // 		        -10, -20, 1,  2, 2, 1,  -20, -10 ,
-    // 		        10,    1, 5,  4, 4, 5,    1,  10 ,
-    // 		        6,     2, 4,  2, 2, 4,    2,   6 ,
-    // 		        6,     2, 4,  2, 2, 4,    2,   6 ,
-    // 		        10,    1, 5,  4, 4, 5,    1,  10 ,
-    // 		        -10, -20, 1,  2, 2, 1,  -20, -10 ,
-    // 		        100, -10, 11, 6, 6, 11, -10, 100};
 }
 
 /*
