@@ -16,12 +16,14 @@ class Player {
   Side mySide;
   Side otherSide;
   std::vector < std::vector <int> > weights;
-  int depth;
+  int depth, method;
  public:
   Player(Side side);
   ~Player();
     
   Move *doMove(Move *opponentsMove, int msLeft);
+  void randomPlayer();
+  void weightPlayer();
   int minimax(Board * leafBoard, int depth, bool max_min);
   std::vector<Move *> vecMoves(Board * leafBoard, Side side);
 
