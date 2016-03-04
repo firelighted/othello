@@ -16,11 +16,14 @@ class Player {
   Side mySide;
   Side otherSide;
   std::vector < std::vector <int> > weights;
+  int depth;
  public:
   Player(Side side);
   ~Player();
     
   Move *doMove(Move *opponentsMove, int msLeft);
+  int minimax(Board * leafBoard, int depth, bool max_min);
+  std::vector<Move *> vecMoves(Board * leafBoard, Side side);
 
   // Flag to tell if the player is running within the test_minimax context
   bool testingMinimax;
