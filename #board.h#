@@ -30,9 +30,9 @@ public:
     int countWhite();
 
     void setBoard(char data[]);
-    int depthRemain;
-    bool max_min;
-    int result;
+    /* int depthRemain; */
+    /* bool max_min; */
+    /* int result; */
 };
 
 #endif

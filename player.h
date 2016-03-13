@@ -16,17 +16,18 @@ class Player {
   Side mySide;
   Side otherSide;
   std::vector < std::vector <int> > weights;
-  int depth, method;
+  void randomPlayer();
+  void weightPlayer();
+  int minimax(Board * leafBoard, int depth, bool max_min);
+  void minimaxPlayer(Board * leafBoard);
+  int mobilePlayer(Board * leafBoard, int depth, bool max_min);
+  std::vector<Move *> vecMoves(Board * leafBoard, Side side);
+  int depth, method, switcher;
  public:
   Player(Side side);
   ~Player();
     
   Move *doMove(Move *opponentsMove, int msLeft);
-  void randomPlayer();
-  void weightPlayer();
-  int minimax(Board * leafBoard, int depth, bool max_min);
-  std::vector<Move *> vecMoves(Board * leafBoard, Side side);
-
   // Flag to tell if the player is running within the test_minimax context
   bool testingMinimax;
 };

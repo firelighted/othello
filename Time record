@@ -1,0 +1,160 @@
+Time for algorithm=0.015318 for depth=5
+Found 5 legal moves.
+Found 4 best moves.
+Choosing move 3
+Picked: (3,2)
+Time for algorithm=0.052057 for depth=5
+Found 5 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (5,4)
+Time for algorithm=0.093099 for depth=5
+Found 9 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (4,7)
+Time for algorithm=0.171736 for depth=5
+Found 7 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (6,5)
+Time for algorithm=0.208417 for depth=5
+Found 8 legal moves.
+Found 2 best moves.
+Choosing move 1
+Picked: (2,4)
+Time for algorithm=0.235285 for depth=5
+Found 8 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (2,2)
+Time for algorithm=0.579927 for depth=5
+Found 15 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (3,0)
+Time for algorithm=0.63367 for depth=5
+Found 11 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (7,6)
+Time for algorithm=0.808839 for depth=5
+Found 10 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (2,5)
+Time for algorithm=0.560938 for depth=5
+Found 11 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (1,3)
+Time for algorithm=0.84299 for depth=5
+Found 17 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (0,0)
+Time for algorithm=1.04636 for depth=5
+Found 11 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (6,7)
+Time for algorithm=0.336958 for depth=5
+Found 10 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (0,4)
+Time for algorithm=0.268616 for depth=5
+Found 9 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (2,6)
+Time for algorithm=0.314588 for depth=5
+Found 12 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (2,0)
+Time for algorithm=0.207004 for depth=5
+Found 11 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (0,6)
+Time for algorithm=0.355866 for depth=5
+Found 10 legal moves.
+Found 2 best moves.
+Choosing move 1
+Picked: (6,3)
+Time for algorithm=0.384726 for depth=5
+Found 8 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (1,7)
+Time for algorithm=0.229769 for depth=5
+Found 9 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (4,2)
+Time for algorithm=0.1262 for depth=5
+Found 8 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (1,2)
+Time for algorithm=0.048976 for depth=5
+Found 6 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (1,4)
+Time for algorithm=0.033893 for depth=5
+Found 5 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (6,4)
+Time for algorithm=0.042708 for depth=5
+Found 3 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (5,6)
+Time for algorithm=0.015261 for depth=5
+PASS
+Time for algorithm=0.005082 for depth=5
+PASS
+Time for algorithm=0.002969 for depth=5
+Found 2 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (5,2)
+Time for algorithm=0.00316 for depth=5
+Found 3 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (5,0)
+Time for algorithm=0.001924 for depth=5
+Found 2 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (7,0)
+Time for algorithm=0.000694 for depth=5
+Found 1 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (4,1)
+Time for algorithm=0.000128 for depth=5
+Found 2 legal moves.
+Found 1 best moves.
+Choosing move 0
+Picked: (7,2)
+Time for algorithm=2e-05 for depth=5
+----------------------------------------
+testgame ConstantTimePlayer colorblind
+Starting game
+Found 4 legal moves.
+Found 4 best moves.
+Choosing move 0
+Picked: (4,5)
+Time for algorithm=32.5908 for depth=9
+Found 5 legal moves.
+Found 2 best moves.
+Choosing move 0
+Picked: (2,3)
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+bash: line 1:  8382 Aborted                 (core dumped) ./colorblind White
