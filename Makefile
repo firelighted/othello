@@ -1,5 +1,5 @@
 CC          = g++
-CFLAGS      = -Wall -ansi -pedantic -ggdb -std=c++11
+CFLAGS      = -Wall -ansi -pedantic -ggdb -std=c++11 -g
 OBJS        = player.o board.o
 PLAYERNAME  = colorblind
 
