@@ -1,0 +1,22 @@
+#include "ABNode.hpp"
+
+
+ABNode::ABNode( Board * aBoard,  Move * aMove, Side aSide);
+{
+  board = aBoard;
+  prevMove = aMove;
+  side = aSide;
+}
+
+ABNode::~ABNode()
+{
+  if (subnodes.size() != 0)
+{
+for (std::vector <ABNode *>::iterator it = node->subnodes.begin(); 
+it != node->subnodes.end(); ++it)
+{
+  delete *it; 
+}
+
+}
+}

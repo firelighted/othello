@@ -5,7 +5,6 @@
 #include "common.h"
 #include "board.h"
 #include <time.h>
-#include <ctime>
 #include <stdlib.h>
 #include <vector>
 using namespace std;
@@ -17,16 +16,13 @@ class Player {
   Side mySide;
   Side otherSide;
   std::vector < std::vector <int> > weights;
-  int depth, method, switcher;
   void randomPlayer();
   void weightPlayer();
   int minimax(Board * leafBoard, int depth, bool max_min);
   void minimaxPlayer(Board * leafBoard);
   int mobilePlayer(Board * leafBoard, int depth, bool max_min);
   std::vector<Move *> vecMoves(Board * leafBoard, Side side);
-		int alphabeta(Board * rootboard, int depth, int a,	int b, bool maxPlayer);
-		//	int alphabetaNode(ABNode * node, int depth, int a,	int b, bool maxPlayer);
-		//	void makeABTree(ABNode * origin, int depth, Side side);
+  int depth, method, switcher;
  public:
   Player(Side side);
   ~Player();
