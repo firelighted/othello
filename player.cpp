@@ -171,12 +171,13 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	  minimaxPlayer(&(this->myBoard));
 	  this->switcher = 1;
 	}
-      else if (this->switcher == 1)
+      else // this->switcher = 1
 	{// MOBILITY METHOD
 	  guessScore = mobilePlayer(&(this->myBoard), this->depth, true);
 	  std::cerr << guessScore << std::endl;
 	  this->switcher = 0;
 	}
+
     }
 
   // Update own board with chosen move
