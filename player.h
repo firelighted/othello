@@ -7,6 +7,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <vector>
+#include <array>
 using namespace std;
 
 class Player {
@@ -18,10 +19,11 @@ class Player {
   std::vector < std::vector <int> > weights;
   void randomPlayer();
   void weightPlayer();
-  int minimax(Board * leafBoard, int depth, bool max_min);
+  int minimax(Board * leafBoard, int depth, int a, int b, bool max_min);
   void minimaxPlayer(Board * leafBoard);
   int mobilePlayer(Board * leafBoard, int depth, bool max_min);
   std::vector<Move *> vecMoves(Board * leafBoard, Side side);
+  Move * vecMovesHelper(Board * leafBoard, Side side, int i, int j);
   int depth, method, switcher;
  public:
   Player(Side side);

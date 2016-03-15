@@ -9,22 +9,26 @@
 #include <cstdio>
 #include <ctime>
 
-
-int debug = 0;
-int method_change_moves = 8 * 6;// 6/8 of stones are on the field
-int DEPTH = 5;
-// 0=random; 1=weighted; 2=minimax; 3=mobility (switch to minimaxPlayer at end); 4=minimaxPlayer;
+#define mindebug 0// minimum debugging output (time, method, depth, score, win/lose)
+#define debug    0// all other debugging output
+// # of stones are on the field when method changes
+#define method_change_moves 32
+#define DEPTH    8// iterative depth
+// 0=random; 1=weighted; 2=minimax w/alpha-beta (mobility then stone count); 
+// 3=mobility (switch to minimaxPlayer stone count); 4=minimaxPlayer;
 // 5=alternating minimax, mobility;
-int METHOD = 3;
+#define METHOD   2
 /*
- * Constructor for the player; initialize everything here. The side your AI is
+ * Constructor for the player; initialize everything here. 
+ * The side your AI is
  * on (BLACK or WHITE) is passed in as "side". The constructor must finish 
  * within 30 seconds.
  */
 Player::Player(Side side) {
   // Will be set to true in test_minimax.cpp, will take effect in doMove()
   testingMinimax = false;
-  // 0=random; 1=weighted; 2=minimax; 3=mobility (switch to minimaxPlayer at end); 
+  // 0=random; 1=weighted; 2=minimax with alpha-beta;
+  // 3=mobility (switch to minimaxPlayer at end); 
   // 4=minimaxPlayer; 5=alternating
   this->method = METHOD;
   this->myBoard = Board();
@@ -33,7 +37,6 @@ Player::Player(Side side) {
     { this->otherSide = WHITE; }
   else 
     { this->otherSide = BLACK; }
-
   // set up for chosen method
   if (method == 0)
     {// RANDOM METHOD
@@ -42,10 +45,10 @@ Player::Player(Side side) {
   else if (method == 1)
     {// WEIGHT METHOD
       if (debug) { std::cerr << "Setting up weights. "; }
-      int arr0[] =  {100, -10, 11, 6, 6, 11, -10, 100};
-      int arr1[]  = {-10, -20, 1,  2, 2, 1,  -20, -10};
-      int arr2[]  = {10,    1, 5,  4, 4, 5,    1,  10};
-      int arr3[]  = {6,     2, 4,  2, 2, 4,    2,   6};
+      int arr0[8] =  {100, -10, 11, 6, 6, 11, -10, 100};
+      int arr1[8]  = {-10, -20, 1,  2, 2, 1,  -20, -10};
+      int arr2[8]  = {10,    1, 5,  4, 4, 5,    1,  10};
+      int arr3[8]  = {6,     2, 4,  2, 2, 4,    2,   6};
       std::vector<int> vec0(arr0, arr0 + 7);
       std::vector<int> vec1(arr1, arr1 + 7);
       std::vector<int> vec2(arr2, arr2 + 7);
@@ -58,10 +61,6 @@ Player::Player(Side side) {
       this->weights.push_back(vec2);
       this->weights.push_back(vec1);
       this->weights.push_back(vec0);
-      if (debug) { 
-	for (int i = 0; i < 8; i++)
-	  { std::cerr << this->weights[i][i] << std::endl; }
-      }
     }
   else
     { 
@@ -92,6 +91,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
   std::clock_t start;
   double duration;
   start = std::clock();
+  int guessScore = 0;
 
   if (testingMinimax)
     { 
@@ -107,8 +107,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
       };
       this->myBoard.setBoard(boardData);
-      if (this->method != 2) 
-	{ std::cerr << "minimax test won't work. player->method is wrong.\n"; }
+      this->method = 2; // set test parameters
+      this->depth = 2;
     }
   // update own board with opponent's move
   this->myBoard.doMove(opponentsMove, this->otherSide);
@@ -125,18 +125,20 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
   if (!this->myBoard.hasMoves(this->mySide))
     {
       if (debug)
-	{ std::cerr << "Playing NULL" <<  std::endl; }
+	{ std::cerr << "Playing NULL" <<  std::endl;
+	  if (this->myBoard.count(this->mySide) 
+		  < this->myBoard.count(this->otherSide))
+		{ std::cerr << "LOSING." << std::endl; }
+	      else { std::cerr << "WINNING." << std::endl; }
+	}
       return NULL;
     }
   this->validMove = new Move(0, 0);
 
   // change method from mobility if space constraint met
-  if ((this->method == 3) && 
-      (this->myBoard.countBlack() + this->myBoard.countWhite() > method_change_moves ))
-    {
-      this->method = 2; // change to minmaxPlayer
-    }
-
+  if (this->myBoard.countBlack() + this->myBoard.countWhite() > method_change_moves )
+    { this->switcher = 1; }// make endgame switch
+    
   // choose a move based on the specified method
   if (this->method == 0)
     {// RANDOM METHOD
@@ -148,13 +150,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     }
   else if (this->method == 2)
     {// MINIMAX METHOD
-      int guessScore = minimax(&(this->myBoard), this->depth, true);
-      std::cerr << guessScore << std::endl;
+      guessScore = minimax(&(this->myBoard), this->depth, -1000, 1000, true);
     }
   else if (this->method == 3)
     { // MOBILITY METHOD
-      int guessScore = mobilePlayer(&(this->myBoard), this->depth, true);
-      std::cerr << guessScore << std::endl;
+      guessScore = mobilePlayer(&(this->myBoard), this->depth, true);
     }
   else if (this->method == 4)
     { // MINIMAX PLAYER METHOD
@@ -173,60 +173,34 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 	}
       else if (this->switcher == 1)
 	{// MOBILITY METHOD
-	  int guessScore = mobilePlayer(&(this->myBoard), this->depth, true);
+	  guessScore = mobilePlayer(&(this->myBoard), this->depth, true);
 	  std::cerr << guessScore << std::endl;
 	  this->switcher = 0;
 	}
     }
-  // else if (this->method == 6)
-  //   { // THREADED MINIMAX PLAYER
-  //     // get initial moves and create threads for them
-  //     std::vector <Move *> moves = vecMoves(&(this->myBoard), this->mySide);
-  //     int NUMTHREAD = moves.size();
-  //     std::thread myThreads[NUMTHREAD];
-  //     std::vector <Board *> boards;
-
-  //     for (int i = 0; i < NUMTHREAD; i++)
-  // 	{
-  // 	  Board * leaf = this->myBoard.copy();
-  // 	  boards.push_back(leaf); // record board so results can be retrieved
-  // 	  leaf->doMove(moves[i], this->mySide);
-  // 	  this->myBoard.depthRemain = this->depth - 1;
-  // 	  this->myBoard.max_min = false;
-  // 	  myThreads[i] = std::thread(&Player::minimaxPlayer, leaf);
-  // 	}
-
-  //     // join threads
-  //     for (int i = 0; i < NUMTHREAD; i++)
-  // 	{
-  // 	  myThreads[i].join();
-  // 	}
-  //     int max, max_i;
-  //     // look through board[i]->result to find highest score at index high_i
-  //     for (int i = 0; i < NUMTHREAD; i++)
-  // 	{
-  // 	  if (boards[i]->result > max)
-  // 	    {
-  // 	      max = boards[i]->result;
-  // 	      max_i = i;
-  // 	    }
-  // 	}
-  //     // set validMove to moves[high_i]
-  //     this->validMove->setX(moves[max_i]->getX());
-  //     this->validMove->setY(moves[max_i]->getY());
-  //   }
 
   // Update own board with chosen move
   this->myBoard.doMove(this->validMove, this->mySide);
-  std::cerr << "Playing move:" << this->validMove->getX() << "," 
-	    << this->validMove->getY() << std::endl; 
-  duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-  std::cerr << "Time=" << duration << " for method " << this->method 
-	    << " for depth=" << this->depth << std::endl;
-
+  if (mindebug)
+    {
+      std::cerr << "Playing move:" << this->validMove->getX() << "," 
+		<< this->validMove->getY() << std::endl; 
+      duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+      if (this->myBoard.count(this->mySide) 
+	  < this->myBoard.count(this->otherSide))
+	{ std::cerr << "LOSING." << std::endl; }
+      else { std::cerr << "WINNING." << std::endl; }
+      std::cerr << "Time=" << duration << " for method=" << this->method 
+		<< " for depth=" << this->depth << " with guessScore=" 
+		<< guessScore << " for side=" << this->mySide << std::endl;
+    }
 
   return this->validMove;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 
 /**
  * @brief mobilePlayer finds a validMove based on how the maximum of the minimum
@@ -236,9 +210,10 @@ int Player::mobilePlayer(Board * leafBoard, int depth, bool max_min)
 {
   if (debug) { std::cerr << "Calling mobilePlayer(depth=" << depth << " , maxmin=" 
 			 << max_min << ") \n"; }
-  if ((depth <= 0)||(leafBoard->isDone()))
+  if ((depth == 0)||(leafBoard->isDone()))
     {
-      int endvalue = vecMoves(leafBoard, this->mySide).size();
+      std::vector <Move *> moves = vecMoves(leafBoard, this->mySide);
+      int endvalue = moves.size();
       if (debug) { std::cerr << "mobilePlayer returns " << endvalue
 			     << std::endl;}
       return endvalue; // heuristic value of node
@@ -247,10 +222,10 @@ int Player::mobilePlayer(Board * leafBoard, int depth, bool max_min)
 
   if (max_min) // maximizing player
     {
-      int bestValue = -100;
+      int bestValue = -1000;
       std::vector <Move *> moves = vecMoves(leafBoard, this->mySide);
       if (debug) { std::cerr << "Found player moves. " << std::endl;}
-      if (moves.size() == 0)// no moves available. 
+      if (moves.empty())// no moves available. 
 	//Go to further depth w/o modifying.
 	{ return mobilePlayer(leafBoard, depth - 1, false); }
       for (int i = 0; i < (signed int) moves.size(); i++)
@@ -276,13 +251,13 @@ int Player::mobilePlayer(Board * leafBoard, int depth, bool max_min)
 		}
 	    }
 	}
-      if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
+      if (debug) { std::cerr << "mobilePlayer returns "<< bestValue << std::endl; }
       for (int i = 0; i < (signed int) moves.size(); i++)  { delete moves[i]; }
       return bestValue;
     }
   else // minimizing player
     {
-      int bestValue = 100;
+      int bestValue = 1000;
       std::vector <Move *> moves = vecMoves(leafBoard, this->otherSide);
       if (debug) { std::cerr << "Found opponent moves. " << std::endl;}
       if (moves.size() == 0)// no moves available. Go to further depth w/o modifying.
@@ -299,83 +274,7 @@ int Player::mobilePlayer(Board * leafBoard, int depth, bool max_min)
 	  v = mobilePlayer(childBoard, depth - 1, true);
 	  bestValue = std::min(bestValue, v);
 	}
-      if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
-      for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  delete moves[i];
-	}
-      return bestValue;
-    }
-}
-
-int Player::minimax(Board * leafBoard, int depth, bool max_min)
-{
-  if (debug) { std::cerr << "Calling minimax(depth=" << depth << " , maxmin=" 
-			 << max_min << ") \n"; }
-  if ((depth <= 0)||(leafBoard->isDone()))
-    { // note: don't want to free the initial leafboard because it's a player member
-      if (debug) { std::cerr << "minimax returns " << leafBoard->count(this->mySide) 
-			     << std::endl;}
-      return leafBoard->count(this->mySide); // heuristic value of node
-    }
-  int v;
-  if (max_min) // maximizing player
-    {
-      int bestValue = -100;
-      std::vector <Move *> moves = vecMoves(leafBoard, this->mySide);
-      if (debug) { std::cerr << "Found player moves. " << std::endl;}
-      if (moves.size() == 0)// no moves available. note: reuse, don't free leafboard
-	{ return minimax(leafBoard, depth - 1, false); }
-      for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  Board * childBoard = leafBoard->copy();  // allocates board for recursion
-	  childBoard->doMove(moves[i], this->mySide); // modify childBoard with move
-	  if (debug) 
-	    {
-	      std::cerr << "Try player move: " << moves[i]->getX() 
-			<< "," << moves[i]->getY() << std::endl;
-	    }
-	  v = minimax(childBoard, depth - 1, false);
-	  if (v > bestValue)
-	    { 
-	      bestValue = v;
-	      if (depth == this->depth) 
-		{ // adjusts validMove only during initial minimax call for player
-		  this->validMove->setX(moves[i]->getX());
-		  this->validMove->setY(moves[i]->getY());
-		  if (debug) { std::cerr << "Setting validMove: " 
-					 << this->validMove->getX() << "," 
-					 << this->validMove->getY() << std::endl;}
-		}
-	    }
-	}
-      if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
-      for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  delete moves[i];
-	}
-      return bestValue;
-    }
-  else // minimizing player
-    {
-      int bestValue = 100;
-      std::vector <Move *> moves = vecMoves(leafBoard, this->otherSide);
-      if (debug) { std::cerr << "Found opponent moves. " << std::endl;}
-      if (moves.size() == 0)// no moves available. 
-	{ return minimax(leafBoard, depth - 1, true); }
-      for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  Board * childBoard = leafBoard->copy(); // allocates board
-	  childBoard->doMove(moves[i], this->otherSide);
-	  if (debug) 
-	    {
-	      std::cerr << "Try opponent move: " << moves[i]->getX() 
-			<< "," << moves[i]->getY() << std::endl;
-	    }
-	  v = minimax(childBoard, depth - 1, true);
-	  bestValue = std::min(bestValue, v);
-	}
-      if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
+      if (debug) { std::cerr << "mobilePlayer returns "<< bestValue << std::endl; }
       for (int i = 0; i < (signed int) moves.size(); i++)
 	{
 	  delete moves[i];
@@ -385,7 +284,88 @@ int Player::minimax(Board * leafBoard, int depth, bool max_min)
 }
 
 /**
- * @brief minimaxPlayer uses threads to determine a strategic move to store 
+ * @brief minimax uses alpha-beta pruning of the minimax algorithm to store
+ * a strategic move in validMove.
+ */
+int Player::minimax(Board * leafBoard, int depth, int a, int b, bool max_min)
+{
+  if (debug) { std::cerr << "Calling minimax(depth=" << depth << " , maxmin=" 
+			 << max_min << ") \n"; }
+  if ((depth <= 0)||(leafBoard->isDone())) // returning heuristic value of this node
+    {
+      if (debug) { std::cerr << "minimax returns " << leafBoard->count(this->mySide) 
+			     << std::endl; }
+      if (this->switcher)
+	{ return leafBoard->count(this->mySide); }// in endgame, use stone count
+      else 
+	{ return vecMoves(leafBoard, this->mySide).size(); } // early in game, use mobility
+    }
+  int value;
+  if (max_min) // maximizing player
+    {
+      int v = -1000;
+      std::vector <Move *> moves = vecMoves(leafBoard, this->mySide);
+      if (debug) { std::cerr << "Found player moves. " << std::endl;}
+      if (moves.empty()) // no moves available.
+	{ return minimax(leafBoard, depth - 1, a, b, false); }
+      for (unsigned int i = 0; i < moves.size(); i++)
+	{
+	  Board * childBoard = leafBoard->copy();     // allocates board for recursion
+	  childBoard->doMove(moves[i], this->mySide); // modify childBoard with move
+	  if (debug) { std::cerr << "Try player move: " << moves[i]->getX() 
+				 << "," << moves[i]->getY() << std::endl; }
+	  value = minimax(childBoard, depth - 1, a, b, false);
+	  if (value > v)
+	    { 
+	      v = value;
+	      if (depth == this->depth) 
+		{ // adjusts validMove only during initial minimax call for player
+		  this->validMove->setX(moves[i]->getX());
+		  this->validMove->setY(moves[i]->getY());
+		  if (debug) { std::cerr << "Setting validMove: " 
+					 << this->validMove->getX() << "," 
+					 << this->validMove->getY() << std::endl;}
+		}
+	      a = std::max(a, v);
+	      if (b <= a)
+		{ break; } // b cut off
+	    }
+	}
+      if (debug) { std::cerr << "minimax returns " << v << std::endl; }
+      for (int i = 0; i < (signed int) moves.size(); i++)
+	{ delete moves[i]; }// clean up moves
+      return v;
+    }
+  else // minimizing player
+    {
+      int v = 1000;
+      std::vector <Move *> moves = vecMoves(leafBoard, this->otherSide);
+      if (debug) { std::cerr << "Found opponent moves. " << std::endl;}
+      if (moves.size() == 0)// no moves available. 
+	{ return minimax(leafBoard, depth - 1, a, b, true); }
+      for (int i = 0; i < (signed int) moves.size(); i++)
+	{
+	  Board * childBoard = leafBoard->copy(); // allocates board
+	  childBoard->doMove(moves[i], this->otherSide);
+	  if (debug) 
+	    {
+	      std::cerr << "Try opponent move: " << moves[i]->getX() 
+			<< "," << moves[i]->getY() << std::endl;
+	    }
+	  v = std::min(v, minimax(childBoard, depth - 1, a, b, true));
+	  b = std::min(b, v);
+	  if (b <= a)
+	    { break; } //a cut off
+	}
+      if (debug) { std::cerr << "minimax returns "<< v << std::endl; }
+      for (int i = 0; i < (signed int) moves.size(); i++)
+	{ delete moves[i]; }// clean up moves
+      return v;
+    }
+} // end minimax
+
+/**
+ * @brief minimaxPlayer determines a strategic move to store 
  * in player->validMove.
  */
 void Player::minimaxPlayer(Board * leafBoard)
@@ -415,8 +395,8 @@ void Player::minimaxPlayer(Board * leafBoard)
 	}
       for (int i = 0; i < (signed int) moves.size(); i++)
 	{
-	  Board * childBoard = leafBoard->copy();  // allocates board for recursion
-	  childBoard->doMove(moves[i], this->mySide); // modify childBoard with move
+	  Board * childBoard = leafBoard->copy();     // duplicate current board to use as base
+	  childBoard->doMove(moves[i], this->mySide); // modify duplicate with move
 	  if (debug)  {std::cerr << "Try player move: " << moves[i]->getX() 
 				 << "," << moves[i]->getY() << std::endl; }
 	  childBoard->depthRemain = leafBoard->depthRemain - 1;
@@ -430,21 +410,16 @@ void Player::minimaxPlayer(Board * leafBoard)
 	      	{ // adjusts validMove only during initial minimax call for player in method 3
 	      	  this->validMove->setX(moves[i]->getX());
 	      	  this->validMove->setY(moves[i]->getY());
-	      	  if (debug) { std::cerr << "Setting validMove: " 
-	      				 << this->validMove->getX() << "," 
-	      				 << this->validMove->getY() << std::endl;}
-	      }
-	      // if ((this->method == 6) && (leafBoard->depthRemain == this->depth -1))
-	      // 	{ // records board score for threaded minimax in method 6 
-	      // 	  this->scores.push_back( std::make_tuple(leafBoard, bestValue) );
-	      // 	}
+	      	  if (debug) { std::cerr << "Setting validMove: "
+					 << this->validMove->getX() 
+					 << ","  << this->validMove->getY() 
+					 << std::endl;}
+		}
 	    }
 	}
       if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
       for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  delete moves[i];
-	}
+	{ delete moves[i]; }// clean up moves
       leafBoard->result = bestValue;
       return;
     }
@@ -457,7 +432,7 @@ void Player::minimaxPlayer(Board * leafBoard)
 	{ 
 	  leafBoard->depthRemain = leafBoard->depthRemain - 1;
 	  // change remaining board depth
-	  leafBoard->max_min = true;            // change max_min
+	  leafBoard->max_min = true;   // change max_min
 	  minimaxPlayer(leafBoard); 
 	  return;
 	}
@@ -466,7 +441,7 @@ void Player::minimaxPlayer(Board * leafBoard)
 	  Board * childBoard = leafBoard->copy(); // allocates board
 	  childBoard->doMove(moves[i], this->otherSide);
 	  if (debug) { std::cerr << "Try opponent move: " << moves[i]->getX() 
-			<< "," << moves[i]->getY() << std::endl; }
+				 << "," << moves[i]->getY() << std::endl; }
 	  childBoard->depthRemain = leafBoard->depthRemain - 1;
 	  childBoard->max_min = true;
 	  minimaxPlayer(childBoard);
@@ -474,9 +449,7 @@ void Player::minimaxPlayer(Board * leafBoard)
 	}
       if (debug) { std::cerr << "minimax returns "<< bestValue << std::endl; }
       for (int i = 0; i < (signed int) moves.size(); i++)
-	{
-	  delete moves[i];
-	}
+	{ delete moves[i]; }// clean up moves
       leafBoard->result = bestValue;
       return;
     }
@@ -489,32 +462,28 @@ void Player::minimaxPlayer(Board * leafBoard)
  */
 std::vector<Move *> Player::vecMoves(Board * leafBoard, Side side)
 {
-  std::vector <Move *> vec; 
+  std::vector <Move *> vec;
   Move * move;
+  int a, b;
   for (int i = 0; i < 8; i++)
     {
       for (int j = 0; j < 8; j++)
 	{
-	  move = new Move(i, j); // allocate for each possible square
+	  a = i; // Desired order of row/col checking:
+	  b = j; // {0, 7, 2, 3, 4, 5, 6, 1}
+	  if (a == 1)      { a = 7; }
+	  else if (a == 7) { a = 1; }
+	  if (b == 1)      { b = 7; }
+	  else if (b == 7) { b = 1; }
+	  move = new Move(a, b);
 	  if (leafBoard->checkMove(move, side))
-	    {
-	      vec.push_back(move);
-	      // if (debug) { std::cerr << "(" << move->getX() <<"," 
-	      // 			     << move->getY() <<") "; }
-	    }
+	    { vec.push_back(move); }
 	  else
-	    {
-	      // if (debug) { std::cerr << "deleting...("<< move->getX() << ","
-	      // 			     << move->getY() <<") "; }
-	      delete move;      // free if not used later
-	      // if (debug) { std::cerr << "X."; }
-	    }
+	    { delete move; }// free if not used later
 	}
     }
-  if (debug) { std::cerr << "Finished vecMoves." << std::endl; }
   return vec;
 }
-
 /**
  * @brief randomPlayer() modifies player->validMove with a 
  * randomly chosen valid move.
